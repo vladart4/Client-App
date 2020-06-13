@@ -27,11 +27,5 @@ void AuthorizationDialog::on_pushButton_2_clicked()
 
 void AuthorizationDialog::on_pushButton_clicked()
 {
-  QByteArray arr;
-  QDataStream stream (&arr, QIODevice::WriteOnly);
-  stream << ui->lineEdit->text();
-  QString pass = QString(QCryptographicHash::hash(ui->lineEdit_2->text().toUtf8(),QCryptographicHash::Md5).toHex());
-  stream << pass ;
-  stream.device()->seek(0);
-  c->WriteD(arr);
+  c->requestNewConnection(ui->lineEdit->text());
 }

@@ -22,21 +22,22 @@ private:
     QString currentData;
     quint16 blockSize;
     QString Username;
+    QTimer *timer;
 
 private slots:
-    void requestNewConnection();
     void ReadyRead();
     void displayError(QAbstractSocket::SocketError socketError);
-    bool VerifyLogin(QByteArray data);
+    bool sendName();
 
 public:
     explicit Client(QWidget *parent = nullptr);
     void ShowAut();
-    void WriteD(QByteArray data);
     QByteArray IntToArray(qint32 source);
     bool Auth = false;
     bool SendCurrentMessage(QString Message);
+    bool SendPrivateMessage(QString Message, QString Reciever);
     void RecieveMessage(QString Message, QString Sender);
+    void requestNewConnection(QString name);
 
 };
 

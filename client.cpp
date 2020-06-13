@@ -4,6 +4,7 @@
 #include <QtNetwork>
 #include <QMessageBox>
 #include <QTranslator>
+#include <QTimer>
 #include "D:\Users\vlada\Documents\ServerTestNew\newclient.h"
 
 
@@ -28,22 +29,20 @@ void Client::ShowAut()
 
  ad.show();
  ad.SetClient(this);
- requestNewConnection();
 
 }
 
-void Client::WriteD(QByteArray data)
-{
-  VerifyLogin(data);
-}
 
 
 
-void Client::requestNewConnection()
+void Client::requestNewConnection(QString name)
 {
     tcpSocket->abort();
     tcpSocket->connectToHost("127.0.0.1",
                              1234);
+
+    Username = name;
+    QTimer::singleShot(100,this,&Client::sendName);
 
 }
 
@@ -126,6 +125,18 @@ void Client::ReadyRead()
 
     }
 
+    case Action::Private :
+    {
+        QString msg;
+        QString name;
+        in >> msg;
+        in >> name;
+
+        mw.DisplayPrivateMessage(msg, name);
+
+
+    }
+
 
 
     }
@@ -161,7 +172,8 @@ void Client::displayError(QAbstractSocket::SocketError socketError)
 
 }
 
-bool Client::VerifyLogin(QByteArray data)
+
+bool Client::sendName()
 {
     if(tcpSocket->state() == QAbstractSocket::ConnectedState)
     {
@@ -170,27 +182,17 @@ bool Client::VerifyLogin(QByteArray data)
         QByteArray l;
         //l.append(QByteArray::number(ac));
        QDataStream stream (&l, QIODevice::WriteOnly);
-       QDataStream newstr (&data,QIODevice::ReadWrite);
-       //QString aa = "test";
-       QString login;
-       QString pass;
-       newstr >> login;
-       newstr >> pass;
-       Username = login;
        stream << quint16(0);
        stream << ac;
-       stream << login;
-       stream << pass;
+       stream << Username;
        stream.device()->seek(0);
        stream << quint16(l.size() - sizeof(quint16));
        tcpSocket->write(l);
         //tcpSocket->write(data);
         return tcpSocket->waitForBytesWritten();
-
     }
-
-   else return false;
-
+    else
+        return false;
 
 }
 
@@ -226,7 +228,34 @@ bool Client::SendCurrentMessage(QString Message)
 
     }
 
-   else return false;
+    else return false;
+}
+
+bool Client::SendPrivateMessage(QString Message, QString Reciever)
+{
+    if(tcpSocket->state() == QAbstractSocket::ConnectedState)
+    {
+        //tcpSocket->write(IntToArray(data.size()));
+        Action ac = Action::Private;
+        QByteArray l;
+        //l.append(QByteArray::number(ac));
+       QDataStream stream (&l, QIODevice::WriteOnly);
+       //QString aa = "test";
+       stream << quint16(0);
+       stream << ac;
+       stream << Username;
+       stream << Message;
+       stream << Reciever;
+       stream.device()->seek(0);
+       stream << quint16(l.size() - sizeof(quint16));
+       tcpSocket->write(l);
+        //tcpSocket->write(data);
+        return tcpSocket->waitForBytesWritten();
+
+    }
+
+    else
+        return false;
 }
 
 void Client::RecieveMessage(QString Message, QString Sender)
