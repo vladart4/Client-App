@@ -32,11 +32,9 @@ private slots:
 public:
     explicit Client(QWidget *parent = nullptr);
     void ShowAut();
-    QByteArray IntToArray(qint32 source);
     bool Auth = false;
     bool SendCurrentMessage(QString Message);
     bool SendPrivateMessage(QString Message, QString Reciever);
-    void RecieveMessage(QString Message, QString Sender);
     void requestNewConnection(QString name);
 
 };

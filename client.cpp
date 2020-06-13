@@ -24,7 +24,7 @@ Client::Client(QWidget *parent) :
 
 }
 
-void Client::ShowAut()
+void Client::ShowAut() //Вызываем окно аутентификации
 {
 
  ad.show();
@@ -35,7 +35,7 @@ void Client::ShowAut()
 
 
 
-void Client::requestNewConnection(QString name)
+void Client::requestNewConnection(QString name) //запрашиваем коннект
 {
     tcpSocket->abort();
     tcpSocket->connectToHost("127.0.0.1",
@@ -48,20 +48,7 @@ void Client::requestNewConnection(QString name)
 
 void Client::ReadyRead()
 {
-//    in.startTransaction();
 
-//    QString nextData;
-//    in >> nextData;
-
-//   if (!in.commitTransaction())
-//       return;
-
-//  if (nextData == currentData) {
-//      QTimer::singleShot(0, this, &Client::requestNewConnection);
-//        return;
-//    }
-
-//    currentData = nextData;
 
 
     QDataStream in(tcpSocket);
@@ -133,7 +120,7 @@ void Client::ReadyRead()
         in >> name;
 
         mw.DisplayPrivateMessage(msg, name);
-
+        break;
 
     }
 
@@ -196,24 +183,15 @@ bool Client::sendName()
 
 }
 
-QByteArray Client::IntToArray(qint32 source) //Use qint32 to ensure that the number have 4 bytes
-{
-    //Avoid use of cast, this is the Qt way to serialize objects
-    QByteArray temp;
-    QDataStream data(&temp, QIODevice::ReadWrite);
-    data << source;
-    return temp;
-}
 
 
 bool Client::SendCurrentMessage(QString Message)
 {
     if(tcpSocket->state() == QAbstractSocket::ConnectedState)
     {
-        //tcpSocket->write(IntToArray(data.size()));
-        Action ac = Action::Message;
-        QByteArray l;
-        //l.append(QByteArray::number(ac));
+
+       Action ac = Action::Message;
+       QByteArray l;;
        QDataStream stream (&l, QIODevice::WriteOnly);
        //QString aa = "test";
        stream << quint16(0);
@@ -223,7 +201,7 @@ bool Client::SendCurrentMessage(QString Message)
        stream.device()->seek(0);
        stream << quint16(l.size() - sizeof(quint16));
        tcpSocket->write(l);
-        //tcpSocket->write(data);
+
         return tcpSocket->waitForBytesWritten();
 
     }
@@ -235,12 +213,10 @@ bool Client::SendPrivateMessage(QString Message, QString Reciever)
 {
     if(tcpSocket->state() == QAbstractSocket::ConnectedState)
     {
-        //tcpSocket->write(IntToArray(data.size()));
+
         Action ac = Action::Private;
         QByteArray l;
-        //l.append(QByteArray::number(ac));
        QDataStream stream (&l, QIODevice::WriteOnly);
-       //QString aa = "test";
        stream << quint16(0);
        stream << ac;
        stream << Username;
@@ -249,8 +225,8 @@ bool Client::SendPrivateMessage(QString Message, QString Reciever)
        stream.device()->seek(0);
        stream << quint16(l.size() - sizeof(quint16));
        tcpSocket->write(l);
-        //tcpSocket->write(data);
-        return tcpSocket->waitForBytesWritten();
+
+       return tcpSocket->waitForBytesWritten();
 
     }
 
@@ -258,10 +234,7 @@ bool Client::SendPrivateMessage(QString Message, QString Reciever)
         return false;
 }
 
-void Client::RecieveMessage(QString Message, QString Sender)
-{
 
-}
 
 
 
