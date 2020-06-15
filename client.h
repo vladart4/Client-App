@@ -6,7 +6,7 @@
 #include <QDataStream>
 #include <QDialog>
 #include <QTcpSocket>
-#include "D:\Users\vlada\Documents\ServerTestNew\newclient.h"
+#include "../Server-App/newclient.h"
 
 typedef NewClient::Action Action;
 
@@ -17,6 +17,7 @@ class Client : public QDialog
 private:
     AuthorizationDialog ad;
     MainWindow mw;
+
     QTcpSocket *tcpSocket = nullptr;
     QDataStream in;
     QString currentData;

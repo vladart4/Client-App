@@ -17,18 +17,20 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+
     void UpdateNames(QList<QString> names);
     void SetClient(Client* cl);
     void SetName(QString name);
-    void DisplayMessage(QString Message, QString Sender);
-    void DisplayPrivateMessage(QString Message, QString Sender);
+    void DisplayMessage(QString message, QString sender);
+    void DisplayPrivateMessage(QString message, QString sender);
+    void DisplayChatEnter(QString name);
+    void DisplayChatExit(QString name);
     void keyPressEvent(QKeyEvent *event);
-    QStandardItemModel *model;
 
+    QStandardItemModel *model;
 
 private slots:
     void on_pushButton_clicked();
-
     void on_pushButton_2_clicked();
 
 private:

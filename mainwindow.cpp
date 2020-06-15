@@ -27,7 +27,6 @@ void MainWindow::UpdateNames(QList<QString> names)
     foreach (QString c, names)
     {
         ui->listWidget->addItem(c);
-
     }
 }
 
@@ -38,13 +37,11 @@ void MainWindow::SetName(QString name)
 
 void MainWindow::DisplayMessage(QString Message, QString Sender)
 {
-
     QStandardItem *itemM = new QStandardItem(Message);
     QStandardItem *itemS = new QStandardItem(Sender);
     itemS->setForeground(Qt::red);
     model->appendRow(itemS);
     model->appendRow(itemM);
-
 }
 
 void MainWindow::DisplayPrivateMessage(QString Message, QString Sender)
@@ -61,6 +58,20 @@ void MainWindow::DisplayPrivateMessage(QString Message, QString Sender)
     model->appendRow(itemM);
 }
 
+void MainWindow::DisplayChatEnter(QString name)
+{
+    QStandardItem *itemS = new QStandardItem(name + " entered the chat");
+    itemS->setForeground(Qt::blue);
+    model->appendRow(itemS);
+}
+
+void MainWindow::DisplayChatExit(QString name)
+{
+    QStandardItem *itemS = new QStandardItem(name + " exited the chat");
+    itemS->setForeground(Qt::blue);
+    model->appendRow(itemS);
+}
+
 void MainWindow::SetClient(Client *cl)
 {
     c = cl;
@@ -68,18 +79,17 @@ void MainWindow::SetClient(Client *cl)
 
 void MainWindow::on_pushButton_clicked()
 {
- if(!ui->lineEdit->text().isEmpty())
- {
-    c->SendCurrentMessage(ui->lineEdit->text());
-    ui->lineEdit->clear();
- }
+    if(!ui->lineEdit->text().isEmpty())
+    {
+        c->SendCurrentMessage(ui->lineEdit->text());
+        ui->lineEdit->clear();
+    }
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event)
 {
     if( (event->key() == Qt::Key_Enter) || (event->key() == Qt::Key_Return))
             on_pushButton_clicked();
-
 }
 
 void MainWindow::on_pushButton_2_clicked()
