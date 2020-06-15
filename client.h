@@ -6,7 +6,7 @@
 #include <QDataStream>
 #include <QDialog>
 #include <QTcpSocket>
-#include "../Server-App/newclient.h"
+#include "../ServerTestNew/newclient.h"
 
 typedef NewClient::Action Action;
 

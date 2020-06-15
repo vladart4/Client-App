@@ -68,7 +68,10 @@ void Client::requestNewConnection(QString name)
 
 void Client::ReadyRead()
 {
-    QDataStream in(socket);
+   QDataStream in(socket);
+   while (socket->bytesAvailable())
+   {
+
 
     if (blockSize == 0) {
         if (socket->bytesAvailable() < (int)sizeof(quint16))
@@ -144,6 +147,7 @@ void Client::ReadyRead()
 
         mw.displayPrivateMessage(msg, name);
     }
+   }
 }
 
 
