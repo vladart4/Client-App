@@ -21,21 +21,12 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::UpdateNames(QList<QString> names)
-{
-    ui->listWidget->clear();
-    foreach (QString c, names)
-    {
-        ui->listWidget->addItem(c);
-    }
-}
-
-void MainWindow::SetName(QString name)
+void MainWindow::setName(QString name)
 {
     ui->label->setText(name);
 }
 
-void MainWindow::DisplayMessage(QString Message, QString Sender)
+void MainWindow::displayMessage(QString Message, QString Sender)
 {
     QStandardItem *itemM = new QStandardItem(Message);
     QStandardItem *itemS = new QStandardItem(Sender);
@@ -44,7 +35,7 @@ void MainWindow::DisplayMessage(QString Message, QString Sender)
     model->appendRow(itemM);
 }
 
-void MainWindow::DisplayPrivateMessage(QString Message, QString Sender)
+void MainWindow::displayPrivateMessage(QString Message, QString Sender)
 {
     QStandardItem *itemM = new QStandardItem(Message);
     QStandardItem *itemS;
@@ -58,21 +49,32 @@ void MainWindow::DisplayPrivateMessage(QString Message, QString Sender)
     model->appendRow(itemM);
 }
 
-void MainWindow::DisplayChatEnter(QString name)
+void MainWindow::onChatEnter(QString name, bool newOne)
 {
-    QStandardItem *itemS = new QStandardItem(name + " entered the chat");
-    itemS->setForeground(Qt::blue);
-    model->appendRow(itemS);
+    ui->listWidget->addItem(name);
+
+    if (newOne)
+    {
+        QStandardItem *itemS = new QStandardItem(name + " entered the chat");
+        itemS->setForeground(Qt::blue);
+        model->appendRow(itemS);
+    }
 }
 
-void MainWindow::DisplayChatExit(QString name)
+void MainWindow::onChatExit(QString name)
 {
+    QList<QListWidgetItem*> items = ui->listWidget->findItems(name, Qt::MatchExactly);
+    foreach (QListWidgetItem* item, items)
+    {
+        delete ui->listWidget->takeItem(ui->listWidget->row(item));
+    }
+
     QStandardItem *itemS = new QStandardItem(name + " exited the chat");
     itemS->setForeground(Qt::blue);
     model->appendRow(itemS);
 }
 
-void MainWindow::SetClient(Client *cl)
+void MainWindow::setClient(Client *cl)
 {
     c = cl;
 }
@@ -81,7 +83,7 @@ void MainWindow::on_pushButton_clicked()
 {
     if(!ui->lineEdit->text().isEmpty())
     {
-        c->SendCurrentMessage(ui->lineEdit->text());
+        c->sendCurrentMessage(ui->lineEdit->text());
         ui->lineEdit->clear();
     }
 }
@@ -98,7 +100,7 @@ void MainWindow::on_pushButton_2_clicked()
     {
         QString Reciever = ui->listWidget->currentItem()->text();
         WhisperRec = Reciever;
-        c->SendPrivateMessage(ui->lineEdit->text(), Reciever);
+        c->sendPrivateMessage(ui->lineEdit->text(), Reciever);
         ui->lineEdit->clear();
     }
 

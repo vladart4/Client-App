@@ -18,8 +18,7 @@ private:
     AuthorizationDialog ad;
     MainWindow mw;
 
-    QTcpSocket *tcpSocket = nullptr;
-    QDataStream in;
+    QTcpSocket *socket = nullptr;
     QString currentData;
     quint16 blockSize;
     QString Username;
@@ -34,8 +33,8 @@ public:
     explicit Client(QWidget *parent = nullptr);
     void ShowAut();
     bool Auth = false;
-    bool SendCurrentMessage(QString Message);
-    bool SendPrivateMessage(QString Message, QString Reciever);
+    bool sendCurrentMessage(QString Message);
+    bool sendPrivateMessage(QString Message, QString Reciever);
     void requestNewConnection(QString name);
 
 };

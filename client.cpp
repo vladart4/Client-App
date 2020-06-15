@@ -6,15 +6,42 @@
 #include <QTimer>
 #include "client.h"
 #include "authorizationdialog.h"
-#include "../Server-App/newclient.h"
+
+
+QString cutStringWithLength(QString& src)
+{
+    int index = src.indexOf("_");
+    if (index == -1) return "";
+
+    int msgSize = src.left(index).toInt();
+    if (msgSize == 0) return "";
+
+    src.remove(0, index+1);
+    if (msgSize > src.size()) return "";
+
+    QString answer = src.left(msgSize);
+    src.remove(0, msgSize+1);
+
+    return answer;
+}
+
+QByteArray prepareMessage(QString msg) {
+    QByteArray l;
+    QDataStream stream (&l, QIODevice::WriteOnly);
+    stream << quint16(0);
+    stream << msg;
+    stream.device()->seek(0);
+    stream << quint16(l.size() - sizeof(quint16));
+    return l;
+}
 
 
 Client::Client(QWidget *parent) :
      QDialog(parent)
-    , tcpSocket(new QTcpSocket(this))
+    , socket(new QTcpSocket(this))
 {
-    connect(tcpSocket, &QIODevice::readyRead, this, &Client::ReadyRead);
-    connect(tcpSocket, &QAbstractSocket::errorOccurred, this, &Client::displayError);
+    connect(socket, &QIODevice::readyRead, this, &Client::ReadyRead);
+    connect(socket, &QAbstractSocket::errorOccurred, this, &Client::displayError);
 
     blockSize = 0;
 }
@@ -31,8 +58,8 @@ void Client::ShowAut()
 // Запрашиваем коннект
 void Client::requestNewConnection(QString name)
 {
-    tcpSocket->abort();
-    tcpSocket->connectToHost("127.0.0.1", 14000);
+    socket->abort();
+    socket->connectToHost("127.0.0.1", 14000);
 
     Username = name;
     QTimer::singleShot(100,this,&Client::sendName);
@@ -41,73 +68,84 @@ void Client::requestNewConnection(QString name)
 
 void Client::ReadyRead()
 {
-    QDataStream in(tcpSocket);
-    Action command;
+    QDataStream in(socket);
 
+    if (blockSize == 0) {
+        if (socket->bytesAvailable() < (int)sizeof(quint16))
+            return;
+        in >> blockSize;
+    }
+
+    if (socket->bytesAvailable() < blockSize)
+        return;
+    else
+        blockSize = 0;
+
+    QString command;
     in >> command;
-    switch(command)
+
+    if (!command.startsWith("EVMp"))
     {
-        case Action::Connect :
-        {
-            QMessageBox msg;
+        // qDebug() << socketDescriptor << "Bad header!";
+        return;
+    }
+    command.remove(0,5); //удаляем EVMp_
 
-            bool bAccess;
-            in >> bAccess;
-            QList<QString> NamesList;
-            in >> NamesList;
-            if (bAccess)
-            {
-                ad.close();
-                mw.show();
-                mw.SetClient(this);
-                Auth = true;
-                mw.UpdateNames(NamesList);
-                mw.SetName(Username);
-                SendCurrentMessage("Has entered the chat");
-            }
-            else
-            {
-                msg.setText("This username is already taken");
-                msg.exec();
-            }
-            tcpSocket->readAll();
-            break;
-        }
-        case Action::NameUpdate :
-        {
-            QList<QString> NamesList;
-            in >> NamesList;
-            if (Auth)
-            {
-               mw.UpdateNames(NamesList);
-            }
-            break;
-        }
-        case Action::Message :
-        {
-            QString msg;
-            QString name;
-            in >> msg;
-            in >> name;
-            mw.DisplayMessage(msg, name);
-            break;
-        }
-        case Action::Private :
-        {
-            QString msg;
-            QString name;
-            in >> msg;
-            in >> name;
+    QString cmdType = command.left(command.indexOf("_"));
+    command.remove(0, cmdType.length()+1);
 
-            mw.DisplayPrivateMessage(msg, name);
-            break;
-        }
-        case Action::Test :
-        {
-            break;
-        }
+    if (cmdType == "WELCOME")
+    {
+        ad.close();
+        mw.show();
+        mw.setClient(this);
+        Auth = true;
+        mw.setName(Username);
+        // TODO: внедрить реакцию на отказ имени
+        /*
+            msg.setText("This username is already taken");
+            msg.exec();
+        */
+    }
+    else if (!Auth) {
+        return;
+    }
+    else if (cmdType == "CONNECT")
+    {
+        bool newOne = command[0] == "1";
+        command.remove(0, 2); // удаляем флаг
+        QString name = cutStringWithLength(command);
+        if (name == "") return;
+
+        mw.onChatEnter(name, newOne);
+    }
+    else if (cmdType == "DISCONNECT")
+    {
+        QString name = cutStringWithLength(command);
+        if (name == "") return;
+
+        mw.onChatExit(name);
+    }
+    else if (cmdType == "SENDMSG")
+    {
+        QString name = cutStringWithLength(command);
+        if (name == "") return;
+
+        QString msg = command;
+
+        mw.displayMessage(msg, name);
+    }
+    else if (cmdType == "PRIVATEMSG")
+    {
+        QString name = cutStringWithLength(command);
+        if (name == "") return;
+
+        QString msg = command;
+
+        mw.displayPrivateMessage(msg, name);
     }
 }
+
 
 void Client::displayError(QAbstractSocket::SocketError socketError)
 {
@@ -137,64 +175,40 @@ void Client::displayError(QAbstractSocket::SocketError socketError)
 
 bool Client::sendName()
 {
-    if(tcpSocket->state() != QAbstractSocket::ConnectedState)
+    if(socket->state() != QAbstractSocket::ConnectedState)
         return false;
 
-    //tcpSocket->write(IntToArray(data.size()));
-    Action ac = Action::Connect;
-    QByteArray l;
-    //l.append(QByteArray::number(ac));
-    QDataStream stream (&l, QIODevice::WriteOnly);
-    stream << quint16(0);
-    stream << ac;
-    stream << Username;
-    stream.device()->seek(0);
-    stream << quint16(l.size() - sizeof(quint16));
-    tcpSocket->write(l);
-    //tcpSocket->write(data);
-    return tcpSocket->waitForBytesWritten();
+    QByteArray parr = prepareMessage(
+        "EVMp_CONNECT_" + QString::number(Username.length()) +
+        "_" + Username);
+    socket->write(parr);
+
+    return socket->waitForBytesWritten();
 }
 
 
-
-bool Client::SendCurrentMessage(QString Message)
+bool Client::sendCurrentMessage(QString message)
 {
-    if(tcpSocket->state() != QAbstractSocket::ConnectedState)
+    if(socket->state() != QAbstractSocket::ConnectedState)
         return false;
 
-    Action ac = Action::Message;
-    QByteArray l;;
-    QDataStream stream (&l, QIODevice::WriteOnly);
-    //QString aa = "test";
-    stream << quint16(0);
-    stream << ac;
-    stream << Username;
-    stream << Message;
-    stream.device()->seek(0);
-    stream << quint16(l.size() - sizeof(quint16));
-    tcpSocket->write(l);
+    QByteArray parr = prepareMessage("EVMp_SENDMSG_" + message);
+    socket->write(parr);
 
-    return tcpSocket->waitForBytesWritten();
+    return socket->waitForBytesWritten();
 }
 
-bool Client::SendPrivateMessage(QString Message, QString Reciever)
+bool Client::sendPrivateMessage(QString message, QString receiver)
 {
-    if(tcpSocket->state() != QAbstractSocket::ConnectedState)
+    if(socket->state() != QAbstractSocket::ConnectedState)
         return false;
 
-    Action ac = Action::Private;
-    QByteArray l;
-    QDataStream stream (&l, QIODevice::WriteOnly);
-    stream << quint16(0);
-    stream << ac;
-    stream << Username;
-    stream << Message;
-    stream << Reciever;
-    stream.device()->seek(0);
-    stream << quint16(l.size() - sizeof(quint16));
-    tcpSocket->write(l);
+    QByteArray parr = prepareMessage(
+        "EVMp_PRIVATEMSG_" + QString::number(receiver.length()) +
+        "_" + receiver + "_" + message);
+    socket->write(parr);
 
-    return tcpSocket->waitForBytesWritten();
+    return socket->waitForBytesWritten();
 }
 
 

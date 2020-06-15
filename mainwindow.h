@@ -18,13 +18,12 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-    void UpdateNames(QList<QString> names);
-    void SetClient(Client* cl);
-    void SetName(QString name);
-    void DisplayMessage(QString message, QString sender);
-    void DisplayPrivateMessage(QString message, QString sender);
-    void DisplayChatEnter(QString name);
-    void DisplayChatExit(QString name);
+    void setClient(Client* cl);
+    void setName(QString name);
+    void displayMessage(QString message, QString sender);
+    void displayPrivateMessage(QString message, QString sender);
+    void onChatEnter(QString name, bool newOne);
+    void onChatExit(QString name);
     void keyPressEvent(QKeyEvent *event);
 
     QStandardItemModel *model;
