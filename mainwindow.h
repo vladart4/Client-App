@@ -31,10 +31,12 @@ public:
 private slots:
     void on_pushButton_clicked();
     void on_pushButton_2_clicked();
+    void on_Call_Button_clicked();
 
 private:
     Ui::MainWindow *ui;
     Client* c;
     QString WhisperRec;
+    bool bCall;
 };
 #endif // MAINWINDOW_H

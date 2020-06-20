@@ -105,3 +105,21 @@ void MainWindow::on_pushButton_2_clicked()
     }
 
 }
+
+void MainWindow::on_Call_Button_clicked()
+{
+    if (!bCall)
+    {
+        //c->makeCall(ui->lineEdit_2->text());
+        ui->Call_Button->setText("Stop");
+        bCall = true;
+    }
+    else
+    {
+        //c->stopCall();
+        ui->Call_Button->setText("Call");
+        bCall = false;
+
+    }
+
+}

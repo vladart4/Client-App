@@ -1,12 +1,18 @@
 #ifndef CLIENT_H
 #define CLIENT_H
-
+//#define MIPCONFIG_SUPPORT_PORTAUDIO
 #include "authorizationdialog.h"
 #include "mainwindow.h"
 #include <QDataStream>
 #include <QDialog>
 #include <QTcpSocket>
+#include "emiplib/mipaudiosession.h"
+#include "emiplib/mippainputoutput.h"
+#include "emiplib/mipconfig.h"
+#include "jrtplib3/rtpipv4address.h"
+#include <iostream>
 #include "../ServerTestNew/newclient.h"
+
 
 typedef NewClient::Action Action;
 
@@ -23,6 +29,8 @@ private:
     quint16 blockSize;
     QString Username;
     QTimer *timer;
+    MIPAudioSessionParams AudioParameters;
+    MIPAudioSession session;
 
 private slots:
     void ReadyRead();
@@ -36,6 +44,8 @@ public:
     bool sendCurrentMessage(QString Message);
     bool sendPrivateMessage(QString Message, QString Reciever);
     void requestNewConnection(QString name);
+    void makeCall(QString address);
+    void stopCall();
 
 };
 

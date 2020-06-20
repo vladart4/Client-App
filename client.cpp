@@ -6,7 +6,10 @@
 #include <QTimer>
 #include "client.h"
 #include "authorizationdialog.h"
-
+#include <windows.h>
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <stdio.h>
 
 QString cutStringWithLength(QString& src)
 {
@@ -59,10 +62,50 @@ void Client::ShowAut()
 void Client::requestNewConnection(QString name)
 {
     socket->abort();
-    socket->connectToHost("127.0.0.1", 14000);
+    socket->connectToHost("192.168.0.4", 14000);
 
     Username = name;
     QTimer::singleShot(100,this,&Client::sendName);
+}
+
+
+void checkRet(bool ret,const MIPErrorBase &obj)
+{
+    if (!ret)
+    {
+        std::cerr << obj.getErrorString() << std::endl;
+        exit(-1);
+    }
+}
+
+
+
+void Client::makeCall(QString address)
+{
+WSADATA dat;
+#ifdef WIN64
+WSAStartup(MAKEWORD(2,2),&dat);
+#endif // WIN64
+
+
+AudioParameters.setPortbase(14002);
+auto ret = session.init(&AudioParameters);
+checkRet(ret, session);
+QHostAddress haddress = QHostAddress(address);
+uint32_t ipaddress = haddress.toIPv4Address();
+session.addDestination(jrtplib::RTPIPv4Address(ipaddress, 14002));
+
+
+}
+
+void Client::stopCall()
+{
+    session.destroy();
+
+    #ifdef WIN64
+    WSACleanup();
+    #endif // WIN64
+
 }
 
 
