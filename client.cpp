@@ -47,6 +47,8 @@ Client::Client(QWidget *parent) :
     connect(socket, &QAbstractSocket::errorOccurred, this, &Client::displayError);
 
     blockSize = 0;
+
+
 }
 
 
@@ -62,7 +64,7 @@ void Client::ShowAut()
 void Client::requestNewConnection(QString name)
 {
     socket->abort();
-    socket->connectToHost("192.168.0.4", 14000);
+    socket->connectToHost("134.19.130.129", 14000);
 
     Username = name;
     QTimer::singleShot(100,this,&Client::sendName);

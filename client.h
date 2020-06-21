@@ -6,6 +6,7 @@
 #include <QDataStream>
 #include <QDialog>
 #include <QTcpSocket>
+#include <QUdpSocket>
 #include "emiplib/mipaudiosession.h"
 #include "emiplib/mippainputoutput.h"
 #include "emiplib/mipconfig.h"
@@ -31,6 +32,7 @@ private:
     QTimer *timer;
     MIPAudioSessionParams AudioParameters;
     MIPAudioSession session;
+    QUdpSocket *udpSocket;
 
 private slots:
     void ReadyRead();

@@ -37,6 +37,6 @@ private:
     Ui::MainWindow *ui;
     Client* c;
     QString WhisperRec;
-    bool bCall;
+    bool bCall = false;
 };
 #endif // MAINWINDOW_H
