@@ -64,7 +64,7 @@ void Client::ShowAut()
 void Client::requestNewConnection(QString name)
 {
     socket->abort();
-    socket->connectToHost("134.19.130.129", 14000);
+    socket->connectToHost("127.0.0.1", 14000);
 
     Username = name;
     QTimer::singleShot(100,this,&Client::sendName);
@@ -95,7 +95,7 @@ auto ret = session.init(&AudioParameters);
 checkRet(ret, session);
 QHostAddress haddress = QHostAddress(address);
 uint32_t ipaddress = haddress.toIPv4Address();
-session.addDestination(jrtplib::RTPIPv4Address(ipaddress, 14002));
+session.addDestination(jrtplib::RTPIPv4Address(ipaddress, 14004));
 
 
 }
