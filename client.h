@@ -12,6 +12,10 @@
 #include "emiplib/mipconfig.h"
 #include "jrtplib3/rtpipv4address.h"
 #include <iostream>
+#include <QIODevice>
+#include <QtMultimedia/QAudioOutput>
+#include <QtMultimedia/QAudioInput>
+#include <QtMultimedia/QAudioFormat>
 #include "../ServerTestNew/newclient.h"
 
 
@@ -33,11 +37,16 @@ private:
     MIPAudioSessionParams AudioParameters;
     MIPAudioSession session;
     QUdpSocket *udpSocket;
+    QAudioInput* input;
+    QAudioFormat format;
+    QAudioOutput* output;
+    QIODevice *device;
 
 private slots:
     void ReadyRead();
     void displayError(QAbstractSocket::SocketError socketError);
     bool sendName();
+    void udpReadyRead();
 
 public:
     explicit Client(QWidget *parent = nullptr);

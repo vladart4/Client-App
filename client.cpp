@@ -45,9 +45,18 @@ Client::Client(QWidget *parent) :
 {
     connect(socket, &QIODevice::readyRead, this, &Client::ReadyRead);
     connect(socket, &QAbstractSocket::errorOccurred, this, &Client::displayError);
-
     blockSize = 0;
+    udpSocket = new QUdpSocket();
+    connect(udpSocket, &QUdpSocket::readyRead, this, &Client::udpReadyRead);
 
+
+
+    format.setSampleRate(48000);
+    format.setChannelCount(1);
+    format.setSampleSize(16);
+    format.setCodec("audio/pcm");
+    format.setByteOrder(QAudioFormat::LittleEndian);
+    format.setSampleType(QAudioFormat::UnSignedInt);
 
 }
 
@@ -64,7 +73,7 @@ void Client::ShowAut()
 void Client::requestNewConnection(QString name)
 {
     socket->abort();
-    socket->connectToHost("134.19.130.129", 14000);
+    socket->connectToHost("127.0.0.1", 14000);
 
     Username = name;
     QTimer::singleShot(100,this,&Client::sendName);
@@ -84,30 +93,52 @@ void checkRet(bool ret,const MIPErrorBase &obj)
 
 void Client::makeCall(QString address)
 {
-WSADATA dat;
-#ifdef WIN64
-WSAStartup(MAKEWORD(2,2),&dat);
-#endif // WIN64
+//WSADATA dat;
+//#ifdef WIN64
+//WSAStartup(MAKEWORD(2,2),&dat);
+//#endif // WIN64
 
 
-AudioParameters.setPortbase(14002);
-auto ret = session.init(&AudioParameters);
-checkRet(ret, session);
-QHostAddress haddress = QHostAddress(address);
-uint32_t ipaddress = haddress.toIPv4Address();
-session.addDestination(jrtplib::RTPIPv4Address(ipaddress, 14002));
+//AudioParameters.setPortbase(14002);
+//AudioParameters.setAcceptOwnPackets(true);
+//auto ret = session.init(&AudioParameters);
+//session.setReceiveMode(jrtplib::RTPTransmitter::AcceptAll);
+//session.startChain();
+//checkRet(ret, session);
+//QHostAddress haddress = QHostAddress(address);
+//uint32_t ipaddress = haddress.toIPv4Address();
+//session.addDestination(jrtplib::RTPIPv4Address(ipaddress, 14004));
+
+
+    QAudioDeviceInfo info(QAudioDeviceInfo::defaultInputDevice());
+    if (!info.isFormatSupported(format))
+        format = info.nearestFormat(format);
+    input = new QAudioInput(format);
+
+    udpSocket->connectToHost("127.0.0.1", 14004);
+    input->start(udpSocket);
+
+    QAudioDeviceInfo info2(QAudioDeviceInfo::defaultOutputDevice());
+    if (!info2.isFormatSupported(format))
+        format = info2.nearestFormat(format);
+
+    output = new QAudioOutput(format);
+    device = output->start();
 
 
 }
 
 void Client::stopCall()
 {
-    session.destroy();
+//    session.destroy();
 
-    #ifdef WIN64
-    WSACleanup();
-    #endif // WIN64
+//    #ifdef WIN64
+//    WSACleanup();
+//    #endif // WIN64
 
+
+    input->stop();
+    udpSocket->disconnectFromHost();
 }
 
 
@@ -233,6 +264,19 @@ bool Client::sendName()
     socket->write(parr);
 
     return socket->waitForBytesWritten();
+}
+
+void Client::udpReadyRead()
+{
+
+    while (udpSocket->hasPendingDatagrams())
+       {
+           QByteArray data;
+           data.resize(udpSocket->pendingDatagramSize());
+           udpSocket->readDatagram(data.data(), data.size());
+           device->write(data.data(), data.size());
+       }
+
 }
 
 
