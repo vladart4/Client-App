@@ -64,7 +64,9 @@ void Client::ShowAut()
 void Client::requestNewConnection(QString name)
 {
     socket->abort();
-    socket->connectToHost("192.168.0.3", 14000);
+    socket->connectToHost("127.0.0.1", 14000);
+    // socket->connectToHost("192.168.0.4", 14000);
+    // socket->connectToHost("134.19.130.129", 14000);
 
     Username = name;
     QTimer::singleShot(100,this,&Client::sendName);
@@ -251,7 +253,8 @@ void Client::displayError(QAbstractSocket::SocketError socketError)
             msg.exec();
             break;
         default:
-            msg.setText("The following error occurred: %1.");
+            msg.setText("The following error occurred (" + QString::number(socketError) +
+                        "): " + socket->errorString());
             msg.exec();
     }
 

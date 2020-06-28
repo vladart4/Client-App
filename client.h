@@ -12,10 +12,6 @@
 #include "emiplib/mipconfig.h"
 #include "jrtplib3/rtpipv4address.h"
 #include <iostream>
-#include "../ServerTestNew/newclient.h"
-
-
-typedef NewClient::Action Action;
 
 class Client : public QDialog
 {
