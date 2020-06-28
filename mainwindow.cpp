@@ -168,9 +168,19 @@ void MainWindow::on_Call_Button_clicked()
 {
     if (!bCall)
     {
+        if (ui->listWidget->selectedItems().size() != 0)
+        {
        // c->makeCall(ui->lineEdit_2->text());
         QString Reciever = ui->listWidget->currentItem()->text();
         c->requestCall(Reciever);
+        }
+        else
+        {
+            QMessageBox msg;
+            msg.setText("Choose a person to call");
+            msg.exec();
+
+        }
     }
     else
     {
