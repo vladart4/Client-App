@@ -48,6 +48,9 @@ public:
     void requestNewConnection(QString name);
     void makeCall(QString address);
     void stopCall();
+    bool requestCall(QString Reciever);
+    bool callAccepted(QString Sender);
+    bool callRejected(QString Sender);
 
 };
 

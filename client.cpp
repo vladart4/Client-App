@@ -64,7 +64,7 @@ void Client::ShowAut()
 void Client::requestNewConnection(QString name)
 {
     socket->abort();
-    socket->connectToHost("127.0.0.1", 14000);
+    socket->connectToHost("192.168.0.3", 14000);
 
     Username = name;
     QTimer::singleShot(100,this,&Client::sendName);
@@ -84,19 +84,18 @@ void checkRet(bool ret,const MIPErrorBase &obj)
 
 void Client::makeCall(QString address)
 {
-WSADATA dat;
-#ifdef WIN64
-WSAStartup(MAKEWORD(2,2),&dat);
-#endif // WIN64
+    WSADATA dat;
+    #ifdef WIN64
+    WSAStartup(MAKEWORD(2,2),&dat);
+    #endif // WIN64
 
 
-AudioParameters.setPortbase(14002);
-auto ret = session.init(&AudioParameters);
-checkRet(ret, session);
-QHostAddress haddress = QHostAddress(address);
-uint32_t ipaddress = haddress.toIPv4Address();
-session.addDestination(jrtplib::RTPIPv4Address(ipaddress, 14004));
-
+    AudioParameters.setPortbase(14002);
+    auto ret = session.init(&AudioParameters);
+    checkRet(ret, session);
+    QHostAddress haddress = QHostAddress(address);
+    uint32_t ipaddress = haddress.toIPv4Address();
+    session.addDestination(jrtplib::RTPIPv4Address(ipaddress, 14002));
 
 }
 
@@ -109,6 +108,8 @@ void Client::stopCall()
     #endif // WIN64
 
 }
+
+
 
 
 void Client::ReadyRead()
@@ -192,6 +193,41 @@ void Client::ReadyRead()
 
         mw.displayPrivateMessage(msg, name);
     }
+    else if (cmdType == "CALL")
+    {
+
+        QString name = command;
+
+        mw.callRequestDisplay(name);
+
+    }
+    else if (cmdType == "CALLACCEPT")
+    {
+
+        QStringList list = command.split(QLatin1Char('_'));
+        QString address = list[0];
+        QString name = list[1];
+        mw.bCall = true;
+        makeCall(address);
+        mw.setVoiceName(name);
+
+    }
+    else if (cmdType == "CALLREJECT")
+    {
+        QString name = command;
+        if (mw.bCall == true)
+        {
+            stopCall();
+            mw.callStopped(name);
+        }
+        else
+        {
+            QMessageBox msg;
+            msg.setText(name + " has rejected your call");
+            msg.exec();
+        }
+
+    }
    }
 }
 
@@ -221,6 +257,41 @@ void Client::displayError(QAbstractSocket::SocketError socketError)
 
 }
 
+
+bool Client::requestCall(QString Reciever)
+{
+
+    if(socket->state() != QAbstractSocket::ConnectedState)
+        return false;
+
+    QByteArray carr = prepareMessage("EVMp_CALL_" + Reciever);
+    socket->write(carr);
+
+    return socket->waitForBytesWritten();
+
+}
+
+bool Client::callAccepted(QString Sender)
+{
+    if(socket->state() != QAbstractSocket::ConnectedState)
+        return false;
+
+    QByteArray acarr = prepareMessage(
+        "EVMp_CALLACCEPT_" + Sender);
+    socket->write(acarr);
+    return socket->waitForBytesWritten();
+}
+
+bool Client::callRejected(QString Sender)
+{
+    if(socket->state() != QAbstractSocket::ConnectedState)
+        return false;
+
+    QByteArray acarr = prepareMessage(
+        "EVMp_CALLREJECT_" + Sender);
+    socket->write(acarr);
+    return socket->waitForBytesWritten();
+}
 
 bool Client::sendName()
 {
@@ -259,6 +330,8 @@ bool Client::sendPrivateMessage(QString message, QString receiver)
 
     return socket->waitForBytesWritten();
 }
+
+
 
 
 

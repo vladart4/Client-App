@@ -25,6 +25,10 @@ public:
     void onChatEnter(QString name, bool newOne);
     void onChatExit(QString name);
     void keyPressEvent(QKeyEvent *event);
+    void callRequestDisplay(QString name);
+    bool bCall = false;
+    void setVoiceName(QString name);
+    void callStopped(QString name);
 
     QStandardItemModel *model;
 
@@ -37,6 +41,7 @@ private:
     Ui::MainWindow *ui;
     Client* c;
     QString WhisperRec;
-    bool bCall = false;
+    QString VoiceBuddy;
+
 };
 #endif // MAINWINDOW_H
