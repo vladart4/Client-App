@@ -27,5 +27,5 @@ void AuthorizationDialog::on_pushButton_2_clicked()
 
 void AuthorizationDialog::on_pushButton_clicked()
 {
-  c->requestNewConnection(ui->lineEdit->text());
+  c->requestNewConnection(ui->lineEdit->text(), ui->lineEdit_IP->text());
 }

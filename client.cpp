@@ -61,10 +61,10 @@ void Client::ShowAut()
 
 
 // Запрашиваем коннект
-void Client::requestNewConnection(QString name)
+void Client::requestNewConnection(QString name, QString ipAddress)
 {
     socket->abort();
-    socket->connectToHost("127.0.0.1", 14000);
+    socket->connectToHost(ipAddress, 14000);
     // socket->connectToHost("192.168.0.4", 14000);
     // socket->connectToHost("134.19.130.129", 14000);
 

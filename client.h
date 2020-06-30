@@ -41,7 +41,7 @@ public:
     bool Auth = false;
     bool sendCurrentMessage(QString Message);
     bool sendPrivateMessage(QString Message, QString Reciever);
-    void requestNewConnection(QString name);
+    void requestNewConnection(QString name, QString ipAddress="127.0.0.1");
     void makeCall(QString address);
     void stopCall();
     bool requestCall(QString Reciever);
