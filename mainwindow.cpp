@@ -65,7 +65,7 @@ void MainWindow::onChatEnter(QString name, bool newOne)
     }
 }
 
-void MainWindow::onChatExit(QString name)
+void MainWindow::onChatExit(QString name, bool atWill)
 {
     QList<QListWidgetItem*> items = ui->listWidget->findItems(name, Qt::MatchExactly);
     foreach (QListWidgetItem* item, items)
@@ -73,8 +73,18 @@ void MainWindow::onChatExit(QString name)
         delete ui->listWidget->takeItem(ui->listWidget->row(item));
     }
 
-    QStandardItem *itemS = new QStandardItem(name + " exited the chat");
-    itemS->setForeground(Qt::blue);
+    QStandardItem *itemS;
+    if (atWill)
+    {
+        itemS = new QStandardItem(name + " exited the chat");
+        itemS->setForeground(Qt::blue);
+    }
+    else
+    {
+        itemS = new QStandardItem(name + " left the chat");
+        itemS->setForeground(Qt::gray);
+    }
+
     model->appendRow(itemS);
 }
 

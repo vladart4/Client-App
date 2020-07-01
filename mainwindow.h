@@ -23,7 +23,7 @@ public:
     void displayMessage(QString message, QString sender);
     void displayPrivateMessage(QString message, QString sender);
     void onChatEnter(QString name, bool newOne);
-    void onChatExit(QString name);
+    void onChatExit(QString name, bool atWill);
     void keyPressEvent(QKeyEvent *event);
     void callRequestDisplay(QString name);
     bool bCall = false;

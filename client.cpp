@@ -175,7 +175,14 @@ void Client::ReadyRead()
         QString name = cutStringWithLength(command);
         if (name == "") return;
 
-        mw.onChatExit(name);
+        mw.onChatExit(name, false);
+    }
+    else if (cmdType == "USERLEFT")
+    {
+        QString name = cutStringWithLength(command);
+        if (name == "") return;
+
+        mw.onChatExit(name, true);
     }
     else if (cmdType == "SENDMSG")
     {
